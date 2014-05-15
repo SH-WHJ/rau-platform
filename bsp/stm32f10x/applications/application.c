@@ -58,9 +58,11 @@ static void led_thread_entry(void* parameter)
         rt_kprintf("led on, count : %d\r\n",count);
 #endif
         count++;
-        rt_hw_led_on(0);
+        //rt_hw_led_on(0);
+        led1_off();
         rt_thread_delay( RT_TICK_PER_SECOND/2 ); /* sleep 0.5 second and switch to other thread */
-
+        led2_off();
+        rt_thread_delay( RT_TICK_PER_SECOND/2 ); /* sleep 0.5 second and switch to other thread */
         /* led1 off */
 #ifndef RT_USING_FINSH
         rt_kprintf("led off\r\n");
@@ -94,6 +96,7 @@ void rt_init_thread_entry(void* parameter)
     rt_components_init();
 #endif
 
+    rt_hw_enc28j60_init();
 #ifdef  RT_USING_FINSH
     finsh_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif  /* RT_USING_FINSH */

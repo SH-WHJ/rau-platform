@@ -687,12 +687,12 @@ static void GPIO_Configuration()
     EXTI_InitTypeDef EXTI_InitStructure;
 
     /*SPI FLASH 的CS信号初始化*/
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;		    //SPI FLASH CS
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
+   // GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;		    //SPI FLASH CS
+   // GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+   //GPIO_Init(GPIOC, &GPIO_InitStructure);
 
     /*由于SPI FLASH与ENC28J60使用了相同的SPI接口，所有置高SPI FLASH的CS信号，不使能SPI FLASH*/
-    GPIO_SetBits(GPIOC, GPIO_Pin_4);	 //SPI CS1
+   // GPIO_SetBits(GPIOC, GPIO_Pin_4);	 //SPI CS1
 
     /*ENC28J60的INT中断输入初始化*/
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;	        
