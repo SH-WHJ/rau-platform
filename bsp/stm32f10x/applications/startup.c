@@ -56,11 +56,9 @@ void assert_failed(u8* file, u32 line)
  */
 void rtthread_startup(void)
 {
-    /* init board */
-    rt_hw_board_init();
+    rt_hw_board_init();//中断向量表位置设置，中断分组设置，GPIO&AFIO时钟使能，系统滴答时钟设置，串口设置
 
-    /* show version */
-    rt_show_version();
+    rt_show_version();//打印RT-Thread版本信息
 
 #ifdef RT_USING_HEAP
 #if STM32_EXT_SRAM
@@ -77,8 +75,7 @@ void rtthread_startup(void)
 #endif  /* STM32_EXT_SRAM */
 #endif /* RT_USING_HEAP */
 
-    /* init scheduler system */
-    rt_system_scheduler_init();
+    rt_system_scheduler_init();//系统调度器初始化
 
     /* initialize timer */
     rt_system_timer_init();

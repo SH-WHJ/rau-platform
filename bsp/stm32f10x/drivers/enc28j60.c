@@ -27,18 +27,17 @@
 
 struct net_device
 {
-	/* inherit from ethernet device */
-	struct eth_device parent;
+  /* inherit from ethernet device */
+  struct eth_device parent;
 
-	/* interface address info. */
-	rt_uint8_t  dev_addr[MAX_ADDR_LEN];			/* hw address	*/
+  rt_uint8_t  dev_addr[MAX_ADDR_LEN];//MAC地址
 };
 
 
-static struct net_device  enc28j60_dev_entry;
-static struct net_device *enc28j60_dev =&enc28j60_dev_entry;
-static rt_uint16_t NextPacketPtr;
-static struct rt_semaphore lock_sem;//定义enc28j60的信号量对象
+static struct net_device  enc28j60_dev_entry;                   //创建一个网络设备对象
+static struct net_device *enc28j60_dev =&enc28j60_dev_entry;    //创建指向网络设备对象的指针
+static rt_uint16_t NextPacketPtr;                               //存储下一个数据包的首地址
+static struct rt_semaphore lock_sem;                            //定义enc28j60的信号量对象
 
 //私有函数声明
 static rt_err_t enc28j60_init(rt_device_t dev);
@@ -213,7 +212,7 @@ static rt_err_t enc28j60_init(rt_device_t dev)
   enc28j60_writereg(MABBIPG,0x15);
   enc28j60_writereg(MAIPGL, 0x12);
   enc28j60_writereg(MAIPGH, 0x0C);
-  //enc28j60_writereg(MACON4, MACON4_DEFER);//当网络被占用时enc28j60发送会一支笔等待
+  //enc28j60_writereg(MACON4, MACON4_DEFER);//当网络被占用时enc28j60发送会一直等待
   //enc28j60_writereg(MACLCON2, 63);
 
   //设置最大帧长度
@@ -228,7 +227,6 @@ static rt_err_t enc28j60_init(rt_device_t dev)
   enc28j60_writereg(MAADR4, enc28j60_dev->dev_addr[1]);
   enc28j60_writereg(MAADR5, enc28j60_dev->dev_addr[0]);
 
-  enc28j60_writereg(ECOCON, 0x00);//禁止enc28j60时钟输出
   enc28j60_writephy(PHCON1, PHCON1_PDPXMD);//配置PHY为全双工  LEDB为拉电流 
   enc28j60_writephy(PHLCON, 0xD76);	//LED状态设置
   enc28j60_writephy(PHCON2, PHCON2_HDLDIS);//回环禁止
@@ -309,10 +307,6 @@ static struct pbuf *enc28j60_rx(rt_device_t dev)
   }
   else
   {
-  // switch to bank 0
-  //enc28j60_setbank(ECON1);
-  // enable packet reception
-  //enc28j60_writeop(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);
     level |= EIE_PKTIE;//在中断中加入接收中断
   }
   enc28j60_interrupt_enable(level);     //使能enc28j60的中断

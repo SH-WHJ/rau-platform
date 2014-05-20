@@ -16,7 +16,7 @@
 #include <rthw.h>
 #include <rtthread.h>
 
-#include "stm32f10x.h"
+#include "usart.h"
 #include "stm32f10x_fsmc.h"
 #include "board.h"
 
@@ -46,7 +46,7 @@ void NVIC_Configuration(void)
     /* Set the Vector Table base location at 0x08000000 */
     NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);
 #endif
-  //使能所有的GPIO时钟
+  //使能GPIO&AFIO时钟
   RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
                           RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD |
                           RCC_APB2Periph_GPIOE | RCC_APB2Periph_GPIOF | 
@@ -182,8 +182,7 @@ void rt_hw_board_init(void)
 {
     NVIC_Configuration();//中断向量表位置设置，中断分组设置，GPIO，AFIO时钟使能
 
-    /* Configure the SysTick */
-    SysTick_Config( SystemCoreClock / RT_TICK_PER_SECOND );
+    SysTick_Config( SystemCoreClock / RT_TICK_PER_SECOND );//配置系统滴答定时器，10ms
 
 #if STM32_EXT_SRAM
     EXT_SRAM_Configuration();

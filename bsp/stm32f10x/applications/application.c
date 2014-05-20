@@ -18,7 +18,8 @@
  */
 /*@{*/
 
-#include <board.h>
+//#include <board.h>
+#include "enc28j60.h"
 #include <rtthread.h>
 
 #ifdef  RT_USING_COMPONENTS_INIT

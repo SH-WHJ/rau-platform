@@ -1909,10 +1909,16 @@
       <name>$PROJ_DIR$\applications\application.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\applications\nds_demo.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\applications\startup.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\applications\tcpclient.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\applications\tcpserver.c</name>
     </file>
   </group>
   <group>

@@ -23,17 +23,17 @@
 /* USART1 */
 #define UART1_GPIO_TX		GPIO_Pin_9
 #define UART1_GPIO_RX		GPIO_Pin_10
-#define UART1_GPIO			GPIOA
+#define UART1_GPIO		GPIOA
 
 /* USART2 */
 #define UART2_GPIO_TX	    GPIO_Pin_2
 #define UART2_GPIO_RX	    GPIO_Pin_3
-#define UART2_GPIO	    	GPIOA
+#define UART2_GPIO	    GPIOA
 
 /* USART3_REMAP[1:0] = 00 */
 #define UART3_GPIO_TX		GPIO_Pin_10
 #define UART3_GPIO_RX		GPIO_Pin_11
-#define UART3_GPIO			GPIOB
+#define UART3_GPIO		GPIOB
 
 /* STM32 uart driver */
 struct stm32_uart
@@ -243,22 +243,16 @@ void USART3_IRQHandler(void)
 static void RCC_Configuration(void)
 {
 #ifdef RT_USING_UART1
-    /* Enable UART GPIO clocks */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     /* Enable UART clock */
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 #endif /* RT_USING_UART1 */
 
 #ifdef RT_USING_UART2
-    /* Enable UART GPIO clocks */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     /* Enable UART clock */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 #endif /* RT_USING_UART2 */
 
 #ifdef RT_USING_UART3
-    /* Enable UART GPIO clocks */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
     /* Enable UART clock */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
 #endif /* RT_USING_UART3 */
@@ -321,8 +315,8 @@ void rt_hw_usart_init(void)
     struct stm32_uart* uart;
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
 
-    RCC_Configuration();
-    GPIO_Configuration();
+    RCC_Configuration();//USART时钟配置
+    GPIO_Configuration();//USART的GPIO引脚设置
 
 #ifdef RT_USING_UART1
     uart = &uart1;
