@@ -127,21 +127,16 @@ void DebugMon_Handler(void)
 * Output         : None
 * Return         : None
 *******************************************************************************/
+extern void enc28j60_isr();
 void EXTI2_IRQHandler(void)
 {
-    //extern void rt_dm9000_isr(void);
-    extern void enc28j60_isr();
-    /* enter interrupt */
-    rt_interrupt_enter();
-
-    /* Clear the enc28j60 EXTI line pending bit */
-    EXTI_ClearITPendingBit(EXTI_Line2);
-
-    //rt_dm9000_isr();
-    enc28j60_isr;
-
-    /* leave interrupt */
-    rt_interrupt_leave();
+  rt_interrupt_enter();
+  if(EXTI_GetFlagStatus(EXTI_Line2)==SET)
+  {
+    EXTI_ClearITPendingBit(EXTI_Line2);//清除enc28j60的中断标志位
+    enc28j60_isr();
+  }
+  rt_interrupt_leave();
 }
 #endif /* RT_USING_LWIP */
 
