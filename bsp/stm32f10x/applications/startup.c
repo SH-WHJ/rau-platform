@@ -64,11 +64,12 @@ void rtthread_startup(void)
 #if STM32_EXT_SRAM
     rt_system_heap_init((void*)STM32_EXT_SRAM_BEGIN, (void*)STM32_EXT_SRAM_END);
 #else
-#ifdef __CC_ARM
+#ifdef __CC_ARM         //ARM RealView                                  
     rt_system_heap_init((void*)&Image$$RW_IRAM1$$ZI$$Limit, (void*)STM32_SRAM_END);
-#elif __ICCARM__
+#elif __ICCARM__        //IAR EWARM
+    //初始化系统堆空间（除去编译时分配的全局变量、静态局部变量外的其他剩余内存被设置为系统堆空间，被系统管理起来）
     rt_system_heap_init(__segment_end("HEAP"), (void*)STM32_SRAM_END);
-#else
+#else                   
     /* init memory system */
     rt_system_heap_init((void*)&__bss_end, (void*)STM32_SRAM_END);
 #endif
@@ -77,20 +78,15 @@ void rtthread_startup(void)
 
     rt_system_scheduler_init();//系统调度器初始化
 
-    /* initialize timer */
-    rt_system_timer_init();
+    rt_system_timer_init();//系统定时器初始化
 
-    /* init timer thread */
-    rt_system_timer_thread_init();
+    rt_system_timer_thread_init();//系统软件定时器线程初始化
 
-    /* init application */
-    rt_application_init();
+    rt_application_init();//应用程序初始化
 
-    /* init idle thread */
-    rt_thread_idle_init();
+    rt_thread_idle_init();//初始化空闲线程
 
-    /* start scheduler */
-    rt_system_scheduler_start();
+    rt_system_scheduler_start();//开始线程调度此后便进入各个线程的无限循环
 
     /* never reach here */
     return ;
