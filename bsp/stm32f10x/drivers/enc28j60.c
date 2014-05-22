@@ -16,7 +16,7 @@
 #include <netif/ethernetif.h>
 #include <stm32f10x.h>
 #include <stm32f10x_spi.h>
-
+#include <rtdef.h>
 
 #define MAX_ADDR_LEN    6
 
@@ -55,12 +55,13 @@ static rt_uint8_t enc28j60_readop(rt_uint8_t op, rt_uint8_t address);
 static void enc28j60_setbank(rt_uint8_t address);
 static rt_uint8_t enc28j60_readreg(rt_uint8_t address);
 static void enc28j60_writereg(rt_uint8_t address, rt_uint8_t data);
-//static rt_uint16_t enc28j60_readphy(rt_uint8_t address);
+static rt_uint16_t enc28j60_readphy(rt_uint8_t address);
 static void enc28j60_writephy(rt_uint8_t address, rt_uint16_t data);
 void enc28j60_clkout(rt_uint8_t clk);
 static void GPIO_Configure();
+static rt_bool_t enc28j60_check_link_status();
 
-void rt_hw_enc28j60_init()
+int rt_hw_enc28j60_init()
 {
   GPIO_Configure();
   SPI_INIT(ENC28J60_SPI);                                 //SPI初始化
@@ -85,7 +86,10 @@ void rt_hw_enc28j60_init()
 
   rt_sem_init(&lock_sem, "lock", 1, RT_IPC_FLAG_FIFO);//创建一个静态信号量
   eth_device_init(&(enc28j60_dev->parent), "e0");
+  
+  return 0;
 }
+
 
 /*
  * RX handler
@@ -97,37 +101,50 @@ void rt_hw_enc28j60_init()
 void enc28j60_isr()
 {
   rt_uint8_t eir, pk_counter;
+  rt_bool_t rx_activiated;
   eir = enc28j60_readreg(EIR);//获取enc28j60中断请求标志位
-  pk_counter = enc28j60_readreg(EPKTCNT);//获取enc28j60缓冲区中数据包的个数
-  if (pk_counter)
+  do
   {
-    eth_device_ready((struct eth_device*)&(enc28j60_dev->parent));//发送邮件，表示数据帧接收到
-    enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIE, EIE_PKTIE);//禁止接收中断
-  }
-  if (eir & EIR_TXIF)//发送中断
-  {
-    enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXIF);//清除发送中断标志位
-  }
-  if ((eir & EIR_TXERIF) != 0)//发送错误中断
-  {
-    enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF);//清除发送错误中断标志位
-  }
-  /*if ((eir & EIR_RXERIF) != 0)//接收错误中断
-  {
-    enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_RXERIF);//清除接收错误中断标志位
-  }
-  if ((eir & EIR_DMAIF) != 0)//DMA中断
-  {
-    enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_DMAIF);//清除DMA断标志位
-  }
-  if ((eir & EIR_LINKIF) != 0)//连接状态改变中断
-  {
-    enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_LINKIF);//清除链接状态改变中断标志位
-  }
-  if ((eir & EIR_WOLIF) != 0)//WOL中断
-  {
-    enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_WOLIF);//清除WOL中断标志位
-  }*/
+    pk_counter = enc28j60_readreg(EPKTCNT);//获取enc28j60缓冲区中数据包的个数
+    if (pk_counter)
+    {
+      eth_device_ready((struct eth_device*)&(enc28j60_dev->parent));//发送邮件，表示数据帧接收到
+      enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIE, EIE_PKTIE);//禁止接收中断
+    }
+    if (eir & EIR_PKTIF)//接收到数据包
+    {
+      rx_activiated = RT_TRUE;
+    }
+    if ((eir & EIR_LINKIF) != 0)//连接状态改变中断
+    {
+      rt_bool_t up=enc28j60_check_link_status();
+      eth_device_linkchange((struct eth_device*)&(enc28j60_dev->parent), up);
+      enc28j60_readphy(PHIR);//读取PHIR寄存器 清除链接状态改变中断标志位
+    }
+    
+    
+    if (eir & EIR_TXIF)//发送中断
+    {
+      enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXIF);//清除发送中断标志位
+    }
+    if ((eir & EIR_TXERIF) != 0)//发送错误中断
+    {
+      enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_TXERIF);//清除发送错误中断标志位
+    }
+    if ((eir & EIR_RXERIF) != 0)//接收错误中断
+    {
+      enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_RXERIF);//清除接收错误中断标志位
+    }
+    if ((eir & EIR_DMAIF) != 0)//DMA中断
+    {
+      enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_DMAIF);//清除DMA断标志位
+    }
+    if ((eir & EIR_WOLIF) != 0)//WOL中断
+    {
+      enc28j60_writeop(ENC28J60_BIT_FIELD_CLR, EIR, EIR_WOLIF);//清除WOL中断标志位
+    }
+    eir = enc28j60_readreg(EIR);//获取enc28j60中断请求标志位
+  }while (rx_activiated != RT_TRUE && eir != 0);
 }
 
 
@@ -217,7 +234,6 @@ static rt_err_t enc28j60_init(rt_device_t dev)
 
   //设置最大帧长度
   enc28j60_writereg(MAMXFLL, MAX_FRAMELEN&0xFF);
-  enc28j60_writereg(MAMXFLH, MAX_FRAMELEN>>8);
 
   //写入MAC地址
   enc28j60_writereg(MAADR0, enc28j60_dev->dev_addr[5]);
@@ -230,9 +246,10 @@ static rt_err_t enc28j60_init(rt_device_t dev)
   enc28j60_writephy(PHCON1, PHCON1_PDPXMD);//配置PHY为全双工  LEDB为拉电流 
   enc28j60_writephy(PHLCON, 0xD76);	//LED状态设置
   enc28j60_writephy(PHCON2, PHCON2_HDLDIS);//回环禁止
-
+  enc28j60_writephy(PHIE, PHIE_PLINKE | PHIE_PGEIE);//开启物理连接状态改变中断
+  
   enc28j60_setbank(ECON1);
-  enc28j60_writeop(ENC28J60_BIT_FIELD_SET, EIE, EIE_INTIE|EIE_PKTIE|EIR_TXIF|EIR_TXERIF);//使能中断 (全局中断 接收中断 发送中断 发送错误中断)
+  enc28j60_writeop(ENC28J60_BIT_FIELD_SET, EIE, EIE_INTIE|EIE_PKTIE|EIR_LINKIF);//使能中断 (全局中断 接收中断 发送中断 发送错误中断 链接状态改变)
   enc28j60_writeop(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_RXEN);//接收使能位
 
   return RT_EOK;
@@ -473,7 +490,7 @@ static void enc28j60_writereg(rt_uint8_t address, rt_uint8_t data)
 }
 
 
-/*static rt_uint16_t enc28j60_readphy(rt_uint8_t address)
+static rt_uint16_t enc28j60_readphy(rt_uint8_t address)
 {
   rt_uint16_t data;
   enc28j60_writereg(MIREGADR, address);//设置物理寄存器地址
@@ -485,7 +502,7 @@ static void enc28j60_writereg(rt_uint8_t address, rt_uint8_t data)
   data=data<<8;
   data|=enc28j60_readreg(MIRDL);
   return data;
-}*/
+}
 
 
 static void enc28j60_writephy(rt_uint8_t address, rt_uint16_t data)
@@ -527,6 +544,20 @@ static void GPIO_Configure()
   NVIC_Init(&NVIC_InitStructure);
 }
 
+
+static rt_bool_t enc28j60_check_link_status()
+{
+  rt_uint16_t reg;
+  //int duplex = duplex;
+
+  reg = enc28j60_readphy(PHSTAT2);
+  //duplex = reg & PHSTAT2_DPXSTAT;
+
+  if (reg & PHSTAT2_LSTAT)
+    return RT_TRUE;
+  else
+    return RT_FALSE;
+}
 
 
 

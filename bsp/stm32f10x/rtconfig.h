@@ -116,7 +116,7 @@
 #define RT_LWIP_TCP_PCB_NUM	5
 
 /* Using DHCP */
-/* #define RT_LWIP_DHCP */
+#define RT_LWIP_DHCP //使用IP自动获取
 
 /* ip address of target*/
 #define RT_LWIP_IPADDR0	192

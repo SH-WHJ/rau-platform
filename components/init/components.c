@@ -96,8 +96,9 @@ void rt_components_init(void)
     {
         (*fn_ptr)();
     }
-#endif
-#else
+#endif //end of #if RT_DEBUG_INIT 
+#else //else of #ifndef _MSC_VER
+    
 #ifdef RT_USING_MODULE
     rt_system_module_init();
 #endif
@@ -173,5 +174,5 @@ void rt_components_init(void)
 #ifdef RT_USING_USB_HOST
 	rt_usb_host_init();
 #endif
-#endif
+#endif //end of #ifndef _MSC_VER
 }

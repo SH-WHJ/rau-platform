@@ -57,7 +57,7 @@ void assert_failed(u8* file, u32 line)
 void rtthread_startup(void)
 {
     rt_hw_board_init();//中断向量表位置设置，中断分组设置，GPIO&AFIO时钟使能，系统滴答时钟设置，串口设置
-
+  
     rt_show_version();//打印RT-Thread版本信息
 
 #ifdef RT_USING_HEAP
@@ -81,9 +81,9 @@ void rtthread_startup(void)
     rt_system_timer_init();//系统定时器初始化
 
     rt_system_timer_thread_init();//系统软件定时器线程初始化
-
+    
     rt_application_init();//应用程序初始化
-
+    
     rt_thread_idle_init();//初始化空闲线程
 
     rt_system_scheduler_start();//开始线程调度此后便进入各个线程的无限循环

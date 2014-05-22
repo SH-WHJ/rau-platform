@@ -182,7 +182,7 @@ typedef int (*init_fn_t)(void);
 			{ __rti_##fn##_name, fn};
 	#else
     	#define INIT_EXPORT(fn, level)  \
-        	const init_fn_t __rt_init_##fn SECTION(".rti_fn."level) = fn
+                        const init_fn_t __rt_init_##fn SECTION(".rti_fn."level) = fn//##实现对其前后的文本链接，即__rt_init_和传进的fn的数据连接
 	#endif
 #endif
 #else
@@ -199,7 +199,7 @@ typedef int (*init_fn_t)(void);
 /* file system initialization (dfs-elm, dfs-rom, ...) */
 #define INIT_FS_EXPORT(fn)              INIT_EXPORT(fn, "4")
 /* environment initialization (mount disk, ...) */
-#define INIT_ENV_EXPORT(fn)				INIT_EXPORT(fn, "5")
+#define INIT_ENV_EXPORT(fn)		INIT_EXPORT(fn, "5")
 /* appliation initialization (rtgui application etc ...) */
 #define INIT_APP_EXPORT(fn)             INIT_EXPORT(fn, "6")
 

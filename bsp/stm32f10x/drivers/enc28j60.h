@@ -213,7 +213,15 @@
         #define PHCON2_JABBER    0x0400
         #define PHCON2_HDLDIS    0x0100
 #define PHSTAT2          0x11
+        #define PHSTAT2_TXSTAT	 0x2000
+        #define PHSTAT2_RXSTAT	 0x1000
+        #define PHSTAT2_COLSTAT	 0x0800
+        #define PHSTAT2_LSTAT	 0x0400
+        #define PHSTAT2_DPXSTAT	 0x0200
+        #define PHSTAT2_PLRITY	 0x0020
 #define PHIE             0x12
+        #define PHIE_PLINKE	 0x0010
+        #define PHIE_PGEIE	 0x0002
 #define PHIR             0x13
 #define PHLCON           0x14
 
@@ -228,7 +236,7 @@
 
 #define	MAX_FRAMELEN	1518	//最大的报文长度为1518字节
 
-void rt_hw_enc28j60_init(void);
+int rt_hw_enc28j60_init(void);
 
 #endif
 
