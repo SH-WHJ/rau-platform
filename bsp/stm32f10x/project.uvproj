@@ -46,7 +46,7 @@
           <OutputName>rtthread-stm32</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>0</CreateHexFile>
+          <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>0</BrowseInformation>
           <ListingPath>.\build\</ListingPath>
@@ -429,6 +429,11 @@
               <FileName>enc28j60.c</FileName>
               <FileType>1</FileType>
               <FilePath>drivers\enc28j60.c</FilePath>
+            </File>
+            <File>
+              <FileName>SPI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\drivers\SPI.c</FilePath>
             </File>
           </Files>
         </Group>

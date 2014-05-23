@@ -16,7 +16,7 @@
 #include <rthw.h>
 #include <rtthread.h>
 
-#include "stm32f10x.h"
+#include "usart.h"
 #include "stm32f10x_fsmc.h"
 #include "board.h"
 
