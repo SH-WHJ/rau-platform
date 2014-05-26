@@ -17,22 +17,61 @@
 
 #include <rtthread.h>
 
-// ENC28J60 Control Registers
-// Control register definitions are a combination of address,
-// bank number, and Ethernet/MAC/PHY indicator bits.
-// - Register address        (bits 0-4)
-// - Bank number        (bits 5-6)
-// - MAC/PHY indicator        (bit 7)
-#define ADDR_MASK        0x1F
-#define BANK_MASK        0x60
-#define SPRD_MASK        0x80
-// All-bank registers
+// ENC28J60寄存器地址宏定义
+// - 定义规范:寄存器真实地址(0-4位)，BANK地址(5-6位),区分MAC和MII地址(第8位)
+#define ADDR_MASK        0x1F   //寄存器地址掩码
+#define BANK_MASK        0x60   //存储区域掩码
+#define SPRD_MASK        0x80   //MAC和MII寄存器掩码
+
+/***********************SPI操作指令集***********************/
+#define ENC28J60_READ_CTRL_REG       0x00       //读控制寄存器
+#define ENC28J60_READ_BUF_MEM        0x3A       //读缓冲器
+#define ENC28J60_WRITE_CTRL_REG      0x40       //写控制寄存器
+#define ENC28J60_WRITE_BUF_MEM       0x7A       //写缓冲器
+#define ENC28J60_BIT_FIELD_SET       0x80       //位域置1
+#define ENC28J60_BIT_FIELD_CLR       0xA0       //位域置0
+#define ENC28J60_SOFT_RESET          0xFF       //系统命令，软件复位
+
+/***********************控制寄存器宏定义***********************/
+//所有BANK公共寄存器
 #define EIE              0x1B
+        #define EIE_INTIE        0x80
+        #define EIE_PKTIE        0x40
+        #define EIE_DMAIE        0x20
+        #define EIE_LINKIE       0x10
+        #define EIE_TXIE         0x08
+        #define EIE_WOLIE        0x04
+        #define EIE_TXERIE       0x02
+        #define EIE_RXERIE       0x01
 #define EIR              0x1C
+        #define EIR_PKTIF        0x40
+        #define EIR_DMAIF        0x20
+        #define EIR_LINKIF       0x10
+        #define EIR_TXIF         0x08
+        #define EIR_WOLIF        0x04
+        #define EIR_TXERIF       0x02
+        #define EIR_RXERIF       0x01
 #define ESTAT            0x1D
+        #define ESTAT_INT        0x80
+        #define ESTAT_LATECOL    0x10
+        #define ESTAT_RXBUSY     0x04
+        #define ESTAT_TXABRT     0x02
+        #define ESTAT_CLKRDY     0x01
 #define ECON2            0x1E
+        #define ECON2_AUTOINC    0x80
+        #define ECON2_PKTDEC     0x40
+        #define ECON2_PWRSV      0x20
+        #define ECON2_VRPS       0x08
 #define ECON1            0x1F
-// Bank 0 registers
+        #define ECON1_TXRST      0x80
+        #define ECON1_RXRST      0x40
+        #define ECON1_DMAST      0x20
+        #define ECON1_CSUMEN     0x10
+        #define ECON1_TXRTS      0x08
+        #define ECON1_RXEN       0x04
+        #define ECON1_BSEL1      0x02
+        #define ECON1_BSEL0      0x01
+// Bank0寄存器
 #define ERDPTL           (0x00|0x00)
 #define ERDPTH           (0x01|0x00)
 #define EWRPTL           (0x02|0x00)
@@ -57,7 +96,7 @@
 #define EDMADSTH         (0x15|0x00)
 #define EDMACSL          (0x16|0x00)
 #define EDMACSH          (0x17|0x00)
-// Bank 1 registers
+// Bank1寄存器
 #define EHT0             (0x00|0x20)
 #define EHT1             (0x01|0x20)
 #define EHT2             (0x02|0x20)
@@ -81,12 +120,42 @@
 #define EWOLIE           (0x16|0x20)
 #define EWOLIR           (0x17|0x20)
 #define ERXFCON          (0x18|0x20)
+        #define ERXFCON_UCEN     0x80
+        #define ERXFCON_ANDOR    0x40
+        #define ERXFCON_CRCEN    0x20
+        #define ERXFCON_PMEN     0x10
+        #define ERXFCON_MPEN     0x08
+        #define ERXFCON_HTEN     0x04
+        #define ERXFCON_MCEN     0x02
+        #define ERXFCON_BCEN     0x01
 #define EPKTCNT          (0x19|0x20)
-// Bank 2 registers
+// Bank2寄存器
 #define MACON1           (0x00|0x40|0x80)
+        #define MACON1_LOOPBK    0x10
+        #define MACON1_TXPAUS    0x08
+        #define MACON1_RXPAUS    0x04
+        #define MACON1_PASSALL   0x02
+        #define MACON1_MARXEN    0x01
 #define MACON2           (0x01|0x40|0x80)
+        #define MACON2_MARST     0x80
+        #define MACON2_RNDRST    0x40
+        #define MACON2_MARXRST   0x08
+        #define MACON2_RFUNRST   0x04
+        #define MACON2_MATXRST   0x02
+        #define MACON2_TFUNRST   0x01
 #define MACON3           (0x02|0x40|0x80)
+        #define MACON3_PADCFG2   0x80
+        #define MACON3_PADCFG1   0x40
+        #define MACON3_PADCFG0   0x20
+        #define MACON3_TXCRCEN   0x10
+        #define MACON3_PHDRLEN   0x08
+        #define MACON3_HFRMLEN   0x04
+        #define MACON3_FRMLNEN   0x02
+        #define MACON3_FULDPX    0x01
 #define MACON4           (0x03|0x40|0x80)
+        #define	MACON4_DEFER	(1<<6)
+        #define	MACON4_BPEN     (1<<5)
+        #define	MACON4_NOBKOFF	(1<<4)
 #define MABBIPG          (0x04|0x40|0x80)
 #define MAIPGL           (0x06|0x40|0x80)
 #define MAIPGH           (0x07|0x40|0x80)
@@ -97,12 +166,14 @@
 #define MAPHSUP          (0x0D|0x40|0x80)
 #define MICON            (0x11|0x40|0x80)
 #define MICMD            (0x12|0x40|0x80)
+        #define MICMD_MIISCAN    0x02
+        #define MICMD_MIIRD      0x01
 #define MIREGADR         (0x14|0x40|0x80)
 #define MIWRL            (0x16|0x40|0x80)
 #define MIWRH            (0x17|0x40|0x80)
 #define MIRDL            (0x18|0x40|0x80)
 #define MIRDH            (0x19|0x40|0x80)
-// Bank 3 registers
+// Bank3寄存器
 #define MAADR1           (0x00|0x60|0x80)
 #define MAADR0           (0x01|0x60|0x80)
 #define MAADR3           (0x02|0x60|0x80)
@@ -114,205 +185,58 @@
 #define EBSTCSL          (0x08|0x60)
 #define EBSTCSH          (0x09|0x60)
 #define MISTAT           (0x0A|0x60|0x80)
+        #define MISTAT_NVALID    0x04
+        #define MISTAT_SCAN      0x02
+        #define MISTAT_BUSY      0x01
 #define EREVID           (0x12|0x60)
 #define ECOCON           (0x15|0x60)
 #define EFLOCON          (0x17|0x60)
 #define EPAUSL           (0x18|0x60)
 #define EPAUSH           (0x19|0x60)
-// PHY registers
+
+/***********************物理寄存器宏定义***********************/
 #define PHCON1           0x00
+        #define PHCON1_PRST      0x8000
+        #define PHCON1_PLOOPBK   0x4000
+        #define PHCON1_PPWRSV    0x0800
+        #define PHCON1_PDPXMD    0x0100
 #define PHSTAT1          0x01
-#define PHHID1           0x02
-#define PHHID2           0x03
+        #define PHSTAT1_PFDPX    0x1000
+        #define PHSTAT1_PHDPX    0x0800
+        #define PHSTAT1_LLSTAT   0x0004
+        #define PHSTAT1_JBSTAT   0x0002
+#define PHID1            0x02
+#define PHID2            0x03
 #define PHCON2           0x10
+        #define PHCON2_FRCLINK   0x4000
+        #define PHCON2_TXDIS     0x2000
+        #define PHCON2_JABBER    0x0400
+        #define PHCON2_HDLDIS    0x0100
 #define PHSTAT2          0x11
+        #define PHSTAT2_TXSTAT	 0x2000
+        #define PHSTAT2_RXSTAT	 0x1000
+        #define PHSTAT2_COLSTAT	 0x0800
+        #define PHSTAT2_LSTAT	 0x0400
+        #define PHSTAT2_DPXSTAT	 0x0200
+        #define PHSTAT2_PLRITY	 0x0020
 #define PHIE             0x12
+        #define PHIE_PLINKE	 0x0010
+        #define PHIE_PGEIE	 0x0002
 #define PHIR             0x13
 #define PHLCON           0x14
 
-// ENC28J60 ERXFCON Register Bit Definitions
-#define ERXFCON_UCEN     0x80
-#define ERXFCON_ANDOR    0x40
-#define ERXFCON_CRCEN    0x20
-#define ERXFCON_PMEN     0x10
-#define ERXFCON_MPEN     0x08
-#define ERXFCON_HTEN     0x04
-#define ERXFCON_MCEN     0x02
-#define ERXFCON_BCEN     0x01
-// ENC28J60 EIE Register Bit Definitions
-#define EIE_INTIE        0x80
-#define EIE_PKTIE        0x40
-#define EIE_DMAIE        0x20
-#define EIE_LINKIE       0x10
-#define EIE_TXIE         0x08
-#define EIE_WOLIE        0x04
-#define EIE_TXERIE       0x02
-#define EIE_RXERIE       0x01
-// ENC28J60 EIR Register Bit Definitions
-#define EIR_PKTIF        0x40
-#define EIR_DMAIF        0x20
-#define EIR_LINKIF       0x10
-#define EIR_TXIF         0x08
-#define EIR_WOLIF        0x04
-#define EIR_TXERIF       0x02
-#define EIR_RXERIF       0x01
-// ENC28J60 ESTAT Register Bit Definitions
-#define ESTAT_INT        0x80
-#define ESTAT_LATECOL    0x10
-#define ESTAT_RXBUSY     0x04
-#define ESTAT_TXABRT     0x02
-#define ESTAT_CLKRDY     0x01
-// ENC28J60 ECON2 Register Bit Definitions
-#define ECON2_AUTOINC    0x80
-#define ECON2_PKTDEC     0x40
-#define ECON2_PWRSV      0x20
-#define ECON2_VRPS       0x08
-// ENC28J60 ECON1 Register Bit Definitions
-#define ECON1_TXRST      0x80
-#define ECON1_RXRST      0x40
-#define ECON1_DMAST      0x20
-#define ECON1_CSUMEN     0x10
-#define ECON1_TXRTS      0x08
-#define ECON1_RXEN       0x04
-#define ECON1_BSEL1      0x02
-#define ECON1_BSEL0      0x01
-// ENC28J60 MACON1 Register Bit Definitions
-#define MACON1_LOOPBK    0x10
-#define MACON1_TXPAUS    0x08
-#define MACON1_RXPAUS    0x04
-#define MACON1_PASSALL   0x02
-#define MACON1_MARXEN    0x01
-// ENC28J60 MACON2 Register Bit Definitions
-#define MACON2_MARST     0x80
-#define MACON2_RNDRST    0x40
-#define MACON2_MARXRST   0x08
-#define MACON2_RFUNRST   0x04
-#define MACON2_MATXRST   0x02
-#define MACON2_TFUNRST   0x01
-// ENC28J60 MACON3 Register Bit Definitions
-#define MACON3_PADCFG2   0x80
-#define MACON3_PADCFG1   0x40
-#define MACON3_PADCFG0   0x20
-#define MACON3_TXCRCEN   0x10
-#define MACON3_PHDRLEN   0x08
-#define MACON3_HFRMLEN   0x04
-#define MACON3_FRMLNEN   0x02
-#define MACON3_FULDPX    0x01
-// ENC28J60 MACON4 Register Bit Definitions
-#define	MACON4_DEFER	(1<<6)
-#define	MACON4_BPEN		(1<<5)
-#define	MACON4_NOBKOFF	(1<<4)
-// ENC28J60 MICMD Register Bit Definitions
-#define MICMD_MIISCAN    0x02
-#define MICMD_MIIRD      0x01
-// ENC28J60 MISTAT Register Bit Definitions
-#define MISTAT_NVALID    0x04
-#define MISTAT_SCAN      0x02
-#define MISTAT_BUSY      0x01
-// ENC28J60 PHY PHCON1 Register Bit Definitions
-#define PHCON1_PRST      0x8000
-#define PHCON1_PLOOPBK   0x4000
-#define PHCON1_PPWRSV    0x0800
-#define PHCON1_PDPXMD    0x0100
-// ENC28J60 PHY PHSTAT1 Register Bit Definitions
-#define PHSTAT1_PFDPX    0x1000
-#define PHSTAT1_PHDPX    0x0800
-#define PHSTAT1_LLSTAT   0x0004
-#define PHSTAT1_JBSTAT   0x0002
-/* ENC28J60 PHY PHSTAT2 Register Bit Definitions */
-#define PHSTAT2_TXSTAT	(1 << 13)
-#define PHSTAT2_RXSTAT	(1 << 12)
-#define PHSTAT2_COLSTAT	(1 << 11)
-#define PHSTAT2_LSTAT	(1 << 10)
-#define PHSTAT2_DPXSTAT	(1 << 9)
-#define PHSTAT2_PLRITY	(1 << 5)
-// ENC28J60 PHY PHCON2 Register Bit Definitions
-#define PHCON2_FRCLINK   0x4000
-#define PHCON2_TXDIS     0x2000
-#define PHCON2_JABBER    0x0400
-#define PHCON2_HDLDIS    0x0100
 
-// ENC28J60 Packet Control Byte Bit Definitions
-#define PKTCTRL_PHUGEEN  0x08
-#define PKTCTRL_PPADEN   0x04
-#define PKTCTRL_PCRCEN   0x02
-#define PKTCTRL_POVERRIDE 0x01
 
-/* ENC28J60 Transmit Status Vector */
-#define TSV_TXBYTECNT           0
-#define TSV_TXCOLLISIONCNT      16
-#define TSV_TXCRCERROR          20
-#define TSV_TXLENCHKERROR       21
-#define TSV_TXLENOUTOFRANGE     22
-#define TSV_TXDONE              23
-#define TSV_TXMULTICAST         24
-#define TSV_TXBROADCAST         25
-#define TSV_TXPACKETDEFER       26
-#define TSV_TXEXDEFER           27
-#define TSV_TXEXCOLLISION       28
-#define TSV_TXLATECOLLISION     29
-#define TSV_TXGIANT             30
-#define TSV_TXUNDERRUN          31
-#define TSV_TOTBYTETXONWIRE     32
-#define TSV_TXCONTROLFRAME      48
-#define TSV_TXPAUSEFRAME        49
-#define TSV_BACKPRESSUREAPP     50
-#define TSV_TXVLANTAGFRAME      51
+//注：在以太网协议中，最大的报文长度为1518字节，而最小报文长度为60字节。
+//    发送缓冲区等于或略大于1518字节，剩余的部分全部分配给接收缓冲区。
+#define RXSTART_INIT	0x0000                  //接收缓冲区起始地址
+#define RXSTOP_INIT	(0x1FFF-0x0600-1)       //接收缓冲区停止地址(接受缓存区大小0x1A00) 
+#define TXSTART_INIT	(0x1FFF-0x0600)         //发送缓冲区起始地址
+#define TXSTOP_INIT	0x1FFF                  //发送缓冲区停止地址(接受缓存区大小0x600) 
 
-#define TSV_SIZE                7
-#define TSV_BYTEOF(x)           ((x) / 8)
-#define TSV_BITMASK(x)          (1 << ((x) % 8))
-#define TSV_GETBIT(x, y)        (((x)[TSV_BYTEOF(y)] & TSV_BITMASK(y)) ? 1 : 0)
+#define	MAX_FRAMELEN	1518	//最大的报文长度为1518字节
 
-/* ENC28J60 Receive Status Vector */
-#define RSV_RXLONGEVDROPEV      16
-#define RSV_CARRIEREV           18
-#define RSV_CRCERROR            20
-#define RSV_LENCHECKERR         21
-#define RSV_LENOUTOFRANGE       22
-#define RSV_RXOK                23
-#define RSV_RXMULTICAST         24
-#define RSV_RXBROADCAST         25
-#define RSV_DRIBBLENIBBLE       26
-#define RSV_RXCONTROLFRAME      27
-#define RSV_RXPAUSEFRAME        28
-#define RSV_RXUNKNOWNOPCODE     29
-#define RSV_RXTYPEVLAN          30
-
-#define RSV_SIZE                6
-#define RSV_BITMASK(x)          (1 << ((x) - 16))
-#define RSV_GETBIT(x, y)        (((x) & RSV_BITMASK(y)) ? 1 : 0)
-
-// SPI operation codes
-#define ENC28J60_READ_CTRL_REG       0x00
-#define ENC28J60_READ_BUF_MEM        0x3A
-#define ENC28J60_WRITE_CTRL_REG      0x40
-#define ENC28J60_WRITE_BUF_MEM       0x7A
-#define ENC28J60_BIT_FIELD_SET       0x80
-#define ENC28J60_BIT_FIELD_CLR       0xA0
-#define ENC28J60_SOFT_RESET          0xFF
-
-// The RXSTART_INIT should be zero. See Rev. B4 Silicon Errata
-// buffer boundaries applied to internal 8K ram
-// the entire available packet buffer space is allocated
-//
-
-// start with recbuf at 0/
-#define RXSTART_INIT	0x0
-// receive buffer end
-#define RXSTOP_INIT		(0x1FFF-0x0600) - 1
-// start TX buffer at 0x1FFF-0x0600, pace for one full ethernet frame (~1500 bytes)
-
-#define TXSTART_INIT	(0x1FFF-0x0600)
-// stp TX buffer at end of mem
-#define TXSTOP_INIT		0x1FFF
-
-// max frame length which the conroller will accept:
-#define MAX_FRAMELEN	1518
-
-void rt_hw_enc28j60_init(void);
-/*配置MAC地址*/
-void Enc28j60_Config_Mac(rt_uint8_t mac0, rt_uint8_t mac1, rt_uint8_t mac2, rt_uint8_t mac3, rt_uint8_t mac4, rt_uint8_t mac5);
+int rt_hw_enc28j60_init(void);
 
 #endif
 

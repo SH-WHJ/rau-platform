@@ -305,22 +305,22 @@
           <name>CCIncludePath2</name>
           <state></state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src</state>
-          <state>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\inc</state>
+          <state>$PROJ_DIR$\..\..\components\init</state>
           <state>$PROJ_DIR$\..\..\include</state>
           <state>$PROJ_DIR$\drivers</state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src\include</state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src\include\netif</state>
           <state>$PROJ_DIR$\..\..\components\CMSIS\Include</state>
-          <state>$PROJ_DIR$\.</state>
+          <state>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc</state>
+          <state>$PROJ_DIR$\STLibraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x</state>
           <state>$PROJ_DIR$\applications</state>
           <state>$PROJ_DIR$\..\..\libcpu\arm\cortex-m3</state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src\include\ipv4</state>
           <state>$PROJ_DIR$\..\..\components\drivers\include</state>
           <state>$PROJ_DIR$\..\..\libcpu\arm\common</state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src\arch\include</state>
-          <state>$PROJ_DIR$\..\..\components\init</state>
+          <state>$PROJ_DIR$\.</state>
           <state>$PROJ_DIR$\..\..\components\finsh</state>
-          <state>$PROJ_DIR$\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -661,7 +661,7 @@
         </option>
         <option>
           <name>IlinkDebugInfoEnable</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>IlinkKeepSymbols</name>
@@ -1256,22 +1256,22 @@
           <name>CCIncludePath2</name>
           <state></state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src</state>
-          <state>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\inc</state>
+          <state>$PROJ_DIR$\..\..\components\init</state>
           <state>$PROJ_DIR$\..\..\include</state>
           <state>$PROJ_DIR$\drivers</state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src\include</state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src\include\netif</state>
           <state>$PROJ_DIR$\..\..\components\CMSIS\Include</state>
-          <state>$PROJ_DIR$\.</state>
+          <state>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc</state>
+          <state>$PROJ_DIR$\STLibraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x</state>
           <state>$PROJ_DIR$\applications</state>
           <state>$PROJ_DIR$\..\..\libcpu\arm\cortex-m3</state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src\include\ipv4</state>
           <state>$PROJ_DIR$\..\..\components\drivers\include</state>
           <state>$PROJ_DIR$\..\..\libcpu\arm\common</state>
           <state>$PROJ_DIR$\..\..\components\net\lwip-1.4.1\src\arch\include</state>
-          <state>$PROJ_DIR$\..\..\components\init</state>
+          <state>$PROJ_DIR$\.</state>
           <state>$PROJ_DIR$\..\..\components\finsh</state>
-          <state>$PROJ_DIR$\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1912,6 +1912,9 @@
     <file>
       <name>$PROJ_DIR$\applications\startup.c</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\applications\tcpclient.c</name>
+    </file>
   </group>
   <group>
     <name>Components</name>
@@ -1960,21 +1963,48 @@
   </group>
   <group>
     <name>Drivers</name>
-    <file>
-      <name>$PROJ_DIR$\drivers\board.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\drivers\enc28j60.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\drivers\led.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\drivers\stm32f10x_it.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\drivers\usart.c</name>
-    </file>
+    <group>
+      <name>C</name>
+      <file>
+        <name>$PROJ_DIR$\drivers\board.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\enc28j60.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\led.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\SPI.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\stm32f10x_it.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\usart.c</name>
+      </file>
+    </group>
+    <group>
+      <name>H</name>
+      <file>
+        <name>$PROJ_DIR$\drivers\board.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\enc28j60.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\led.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\SPI.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\stm32f10x_it.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\usart.h</name>
+      </file>
+    </group>
   </group>
   <group>
     <name>finsh</name>
@@ -2167,80 +2197,161 @@
   </group>
   <group>
     <name>STM32_StdPeriph</name>
+    <group>
+      <name>C</name>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\misc.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_adc.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_bkp.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_can.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_cec.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_crc.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_dac.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_dbgmcu.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_dma.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_exti.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_flash.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_fsmc.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_gpio.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_i2c.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_iwdg.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_pwr.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_rcc.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_rtc.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_sdio.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_spi.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_tim.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_usart.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_wwdg.c</name>
+      </file>
+    </group>
+    <group>
+      <name>H</name>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\misc.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_adc.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_bkp.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_can.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_cec.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_crc.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_dac.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_dbgmcu.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_dma.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_exti.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_flash.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_fsmc.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_gpio.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_i2c.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_iwdg.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_pwr.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_rcc.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_rtc.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_sdio.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_spi.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_tim.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_usart.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\STLibraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_wwdg.h</name>
+      </file>
+    </group>
     <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\misc.c</name>
+      <name>$PROJ_DIR$\STLibraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\startup\iar\startup_stm32f10x_hd.s</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\startup\iar\startup_stm32f10x_hd.s</name>
+      <name>$PROJ_DIR$\STLibraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\stm32f10x.h</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_adc.c</name>
+      <name>$PROJ_DIR$\STLibraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_bkp.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_can.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_cec.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_crc.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_dac.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_dbgmcu.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_dma.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_exti.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_flash.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_fsmc.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_gpio.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_i2c.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_iwdg.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_pwr.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_rcc.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_rtc.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_sdio.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_spi.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_tim.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_usart.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\STM32F10x_StdPeriph_Driver\src\stm32f10x_wwdg.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Libraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.c</name>
+      <name>$PROJ_DIR$\STLibraries\CMSIS\CM3\DeviceSupport\ST\STM32F10x\system_stm32f10x.h</name>
     </file>
   </group>
 </project>
