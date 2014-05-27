@@ -42,6 +42,7 @@
 #endif
 
 #include "led.h"
+#include "Modbus.h"
 
 ALIGN(RT_ALIGN_SIZE)
 static rt_uint8_t led_stack[ 512 ];
@@ -69,6 +70,25 @@ static void led_thread_entry(void* parameter)
         rt_kprintf("led off\r\n");
 #endif
         rt_hw_led_off(0);
+        
+        /*********************Modbus≤‚ ‘≥Ã–Ú*********************/
+        uint8_t aa[100]={0};
+        Modbus_RStruct readstruct;
+        readstruct.address=0;
+        readstruct.device_id=0x01;
+        readstruct.function=Modbus_InputReg;
+        readstruct.len=10;
+        Modbus_RRStruct* rreadstruct=Modbus_Read(&readstruct);
+        if(rreadstruct->receive_len!=0)
+        {
+          for(uint16_t i=0;i<rreadstruct->receive_len;i++)
+          {
+            aa[i]=rreadstruct->ReceiveData[i];
+          }
+        }
+        aa[1]++;
+        /*********************Modbus≤‚ ‘≥Ã–ÚΩ· ¯*********************/
+        
         rt_thread_delay( RT_TICK_PER_SECOND/2 );
     }
 }
