@@ -73,12 +73,15 @@ static void led_thread_entry(void* parameter)
         
         /*********************Modbus²âÊÔ³ÌÐò*********************/
         uint8_t aa[100]={0};
+        rt_ubase_t  level;
         Modbus_RStruct readstruct;
         readstruct.address=0;
         readstruct.device_id=0x01;
         readstruct.function=Modbus_InputReg;
         readstruct.len=10;
+        level = rt_hw_interrupt_disable();
         Modbus_RRStruct* rreadstruct=Modbus_Read(&readstruct);
+        rt_hw_interrupt_enable(level);
         if(rreadstruct->receive_len!=0)
         {
           for(uint16_t i=0;i<rreadstruct->receive_len;i++)
