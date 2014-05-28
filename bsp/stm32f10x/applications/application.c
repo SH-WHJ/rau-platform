@@ -72,12 +72,13 @@ static void led_thread_entry(void* parameter)
         rt_hw_led_off(0);
         
         /*********************Modbus测试程序*********************/
+        //读保持寄存器
         uint8_t aa[100]={0};
         rt_ubase_t  level;
         Modbus_RStruct readstruct;
         readstruct.address=0;
         readstruct.device_id=0x01;
-        readstruct.function=Modbus_InputReg;
+        readstruct.function=Modbus_Read_HoldReg;
         readstruct.len=10;
         level = rt_hw_interrupt_disable();
         Modbus_RRStruct* rreadstruct=Modbus_Read(&readstruct);
@@ -90,6 +91,26 @@ static void led_thread_entry(void* parameter)
           }
         }
         aa[1]++;
+        
+        //打开单个线圈
+        /*uint8_t data1[2]={0xff,0x00};
+        Modbus_WStruct writestruct1;
+        writestruct1.device_id=0x01;
+        writestruct1.function=Modbus_Write1_Coil;
+        writestruct1.address=0;
+        writestruct1.len=2;
+        writestruct1.data=data1;
+        Modbus_Write(&writestruct1);*/
+        
+        //写两个保持寄存器
+        /*uint8_t data2[4]={0x01,0x02,0x03,0x04};
+        Modbus_WStruct writestruct2;
+        writestruct2.device_id=0x01;
+        writestruct2.function=Modbus_Write1_HoldReg;
+        writestruct2.address=0;
+        writestruct2.len=4;
+        writestruct2.data=data2;
+        Modbus_Write(&writestruct2);*/
         /*********************Modbus测试程序结束*********************/
         
         rt_thread_delay( RT_TICK_PER_SECOND/2 );

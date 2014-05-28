@@ -7,12 +7,11 @@
 #include <math.h>
 #include "rtdef.h"
 
-
 struct Modbusr_Configure MB_Configure=Modbus_Configure_Default;//Modbus基本参数配置机构体
-Modbus_RStruct MB_Read_Struct;                                  //Modbus读操作传进来的结构体(本地缓存)
-Modbus_RRStruct MB_Read_RStruct;                                //Modbus读操作返回的结构体
 
 //私有函数申明
+static uint8_t Modbus_Write1(Modbus_WStruct* mb_wstruct);
+static uint8_t Modbus_WriteN(Modbus_WStruct* mb_wstruct);
 static void RS485_TIM_Configure(struct RS485_Configure* Configure);
 static void RS485_Send(uint8_t* buff,uint16_t len);
 static void Modbus_Set_Timer(FunctionalState timer_state,uint8_t period_mode);
@@ -46,18 +45,16 @@ Modbus_RRStruct* Modbus_Read(Modbus_RStruct* readstruct)
   uint8_t SendData[8]={0};
   uint8_t MB_ReceiveLen_Temp=0,MB_ReceiveLen=0,usart_rdata;
   uint8_t* pMB_ReceiveData=NULL;
+  Modbus_RStruct mb_rstruct=*readstruct;
+  static Modbus_RRStruct MB_Read_RStruct;      //Modbus读操作返回的结构体
   
-  free(MB_Read_RStruct.ReceiveData);    //释放上次接收数据空间
-  MB_Read_RStruct.receive_len=0;        //清空上次接收数据长度
-  MB_Read_Struct.device_id=readstruct->device_id;//将传进的读操作结构体拷贝至本地buffer
-  MB_Read_Struct.function =readstruct->function;
-  MB_Read_Struct.address  =readstruct->address;
-  MB_Read_Struct.len      =readstruct->len;
+  free(MB_Read_RStruct.ReceiveData);            //释放上次接收数据空间
+
   
-  //配置代发送的数据包
-  SendData[0]=MB_Read_Struct.device_id;        SendData[1]=MB_Read_Struct.function;     //配置设备地址和操作码
-  SendData[2]=(MB_Read_Struct.address>>8)&0xff;SendData[3]=MB_Read_Struct.address&0xff; //配置读取起始地址
-  SendData[4]=(MB_Read_Struct.len>>8)&0xff;    SendData[5]=MB_Read_Struct.len&0xff;     //配置读写长度
+  //配置待发送的数据包
+  SendData[0]=mb_rstruct.device_id;        SendData[1]=mb_rstruct.function;     //配置设备地址和操作码
+  SendData[2]=(mb_rstruct.address>>8)&0xff;SendData[3]=mb_rstruct.address&0xff; //配置读取起始地址
+  SendData[4]=(mb_rstruct.len>>8)&0xff;    SendData[5]=mb_rstruct.len&0xff;     //配置读写长度
   
   CRC_Check(SendData,6,&SendData[6]);           //对发送数据进行CRC校验
   MB_Configure.state=MB_SEND;                   //设置Modbus工作状态为正在发送
@@ -70,9 +67,9 @@ Modbus_RRStruct* Modbus_Read(Modbus_RStruct* readstruct)
     if(TIM_GetFlagStatus(TIM2, TIM_IT_Update) != RESET) //检查TIM2中断发生与否
     {
       TIM_ClearITPendingBit(TIM2, TIM_IT_Update);       //清除TIM2中断标志
-      if(MB_Configure.state==MB_WAITRESPONSE)           //Modbus工作状态为等待从机响应,则表示等待从机响应超时，Modbus通信发生错误
+      Modbus_Set_Timer(DISABLE,NULL);
+      if(MB_Configure.state==MB_WAITRESPONSE || MB_Configure.state==MB_FAILED)//Modbus工作状态为等待从机响应,则表示等待从机响应超时；或者Modbus通信发生错误
       {
-        Modbus_Set_Timer(DISABLE,NULL);
         MB_Configure.state=MB_FAILED;
         break;
       }
@@ -80,15 +77,13 @@ Modbus_RRStruct* Modbus_Read(Modbus_RStruct* readstruct)
       {
         uint8_t crc_temp[2]={0};
         CRC_Check(pMB_ReceiveData,MB_ReceiveLen-2,crc_temp);
-        if(MB_Configure.state==MB_FAILED || MB_ReceiveLen_Temp!=MB_ReceiveLen || crc_temp[0]!=pMB_ReceiveData[MB_ReceiveLen-2] || crc_temp[1]!=pMB_ReceiveData[MB_ReceiveLen-1])//接收不相等，并且CRC校验不相等，则接收数据包失败
+        if(MB_ReceiveLen_Temp!=MB_ReceiveLen || crc_temp[0]!=pMB_ReceiveData[MB_ReceiveLen-2] || crc_temp[1]!=pMB_ReceiveData[MB_ReceiveLen-1])//接收不相等，并且CRC校验不相等，则接收数据包失败
         {
-          Modbus_Set_Timer(DISABLE,NULL);
           MB_Configure.state=MB_FAILED;
           break;
         }
         else//接收成功
         {
-          Modbus_Set_Timer(DISABLE,NULL);
           MB_Configure.state=MB_OK;
           //拷贝接收数据中数据段至返回结构体中
           MB_Read_RStruct.receive_len=MB_ReceiveLen-5;
@@ -106,18 +101,16 @@ Modbus_RRStruct* Modbus_Read(Modbus_RStruct* readstruct)
         TIM2->CNT = 0;;                                         //定时器当前定时值清零
         if(MB_ReceiveLen_Temp==0)                               //检测接收的第一个字符是否与从地址匹配
         {
-          if(usart_rdata==MB_Read_Struct.device_id)
-          {
-            MB_Configure.state=MB_RECEIVE;                        //设置Modbus工作状态为正在接收从机响应
-            Modbus_Set_Timer(ENABLE,MB_TIMER_RECEIVE);            //启动Modbus定时器，等待从站的响应
+          MB_Configure.state=MB_RECEIVE;                        //设置Modbus工作状态为正在接收从机响应
+          Modbus_Set_Timer(ENABLE,MB_TIMER_RECEIVE);            //启动Modbus定时器，等待从站的响应
+          if(usart_rdata==mb_rstruct.device_id)
             MB_ReceiveLen_Temp++;
-          }
           else
             MB_Configure.state=MB_FAILED;
         }
         else if(MB_ReceiveLen_Temp==1 && MB_Configure.state!=MB_FAILED)//接收的第二个字符，操作码
         {
-          if(usart_rdata==MB_Read_Struct.function)               //如果操作码匹配
+          if(usart_rdata==mb_rstruct.function)               //如果操作码匹配
             MB_ReceiveLen_Temp++;
           else
             MB_Configure.state=MB_FAILED;
@@ -126,7 +119,7 @@ Modbus_RRStruct* Modbus_Read(Modbus_RStruct* readstruct)
         {
           MB_ReceiveLen=usart_rdata+5;                          //计算接收数据的长度
           pMB_ReceiveData = (uint8_t*)malloc(MB_ReceiveLen);    //创建发送数据缓冲区
-          pMB_ReceiveData[0]=MB_Read_Struct.device_id; pMB_ReceiveData[1]=MB_Read_Struct.function; pMB_ReceiveData[2]=usart_rdata;
+          pMB_ReceiveData[0]=mb_rstruct.device_id; pMB_ReceiveData[1]=mb_rstruct.function; pMB_ReceiveData[2]=usart_rdata;
           MB_ReceiveLen_Temp++;
         }
         else if(MB_ReceiveLen_Temp<MB_ReceiveLen && MB_Configure.state!=MB_FAILED)
@@ -140,6 +133,171 @@ Modbus_RRStruct* Modbus_Read(Modbus_RStruct* readstruct)
   }
   free(pMB_ReceiveData);//释放接收过程中申请的存放接收数据的空间
   return (&MB_Read_RStruct);
+}
+
+
+/*******************************************************************************
+* 函数名 : Modbus_Write
+* 描述   : Modbus写数据(线圈或者保持寄存器,其中线圈只支持写一个线圈)
+* 输入   : writestruct:指向写操作配置的结构体指针
+* 返回   : 是否写入成功
+*******************************************************************************/
+uint8_t Modbus_Write(Modbus_WStruct* writestruct)
+{
+  Modbus_WStruct mb_wstruct=*writestruct;
+  if(writestruct->function==Modbus_Write1_Coil && (writestruct->data[0]==0xff || writestruct->data[0]==0x00) && writestruct->data[1]==0x00)
+    return Modbus_Write1(&mb_wstruct);
+  else if(writestruct->function==Modbus_Write1_HoldReg)
+    return Modbus_Write1(&mb_wstruct);
+  else if(writestruct->function==Modbus_WriteN_HoldReg)
+    return Modbus_WriteN(&mb_wstruct);
+  
+  return RT_ERROR;
+}
+
+
+/*******************************************************************************
+* 函数名 : Modbus_Write1
+* 描述   : Modbus写一个数据(线圈或者保持寄存器)
+* 输入   : writestruct:指向写操作配置的结构体指针
+* 返回   : 是否写入成功
+*******************************************************************************/
+static uint8_t Modbus_Write1(Modbus_WStruct* mb_wstruct)
+{
+  uint8_t SendData[8]={0};
+  uint8_t MB_ReceiveLen_Temp=0,usart_rdata;
+  
+  //配置待发送的数据包
+  SendData[0]=mb_wstruct->device_id;        SendData[1]=mb_wstruct->function;     //配置设备地址和操作码
+  SendData[2]=(mb_wstruct->address>>8)&0xff;SendData[3]=mb_wstruct->address&0xff; //配置写入的起始地址
+  SendData[4]=mb_wstruct->data[0];          SendData[5]=mb_wstruct->data[1];      //配置待写入的数据
+  
+  CRC_Check(SendData,6,&SendData[6]);           //对发送数据进行CRC校验
+  MB_Configure.state=MB_SEND;                   //设置Modbus工作状态为正在发送
+  RS485_Send(SendData,8);                       //调用RS485驱动，发送数据
+  MB_Configure.state=MB_WAITRESPONSE;           //设置Modbus工作状态为等待从机响应
+  Modbus_Set_Timer(ENABLE,MB_TIMER_WAIT);       //启动Modbus定时器，等待从站的响应
+  
+  while(1)
+  {
+    if(TIM_GetFlagStatus(TIM2, TIM_IT_Update) != RESET) //检查TIM2中断发生与否
+    {
+      TIM_ClearITPendingBit(TIM2, TIM_IT_Update);       //清除TIM2中断标志
+      Modbus_Set_Timer(DISABLE,NULL);
+      if(MB_Configure.state==MB_WAITRESPONSE || MB_Configure.state==MB_FAILED)//Modbus工作状态为等待从机响应,则表示等待从机响应超时；或者Modbus通信发生错误
+      {
+        MB_Configure.state=MB_FAILED;
+        return RT_ERROR;
+      }
+      else if(MB_Configure.state==MB_RECEIVE)           //Modbus工作状态为数据接收状态，Modbus通信正常，
+      {
+        if(MB_ReceiveLen_Temp!=8)//接收数据错误
+        {
+          MB_Configure.state=MB_FAILED;
+          return RT_ERROR;
+        }
+        else//接收成功
+        {
+          MB_Configure.state=MB_OK;
+          return RT_EOK;
+        }
+      }
+    }
+    
+    if(USART_GetFlagStatus(USART2,USART_FLAG_RXNE) == SET)
+    {
+        usart_rdata=USART_ReceiveData(USART2);                  //获取usart接收到的数据
+        TIM2->CNT = 0;;                                         //定时器当前定时值清零
+        if(MB_ReceiveLen_Temp<8 && MB_Configure.state!=MB_FAILED)
+        {
+          if(MB_ReceiveLen_Temp==0)
+          {
+            MB_Configure.state=MB_RECEIVE;                        //设置Modbus工作状态为正在接收从机响应
+            Modbus_Set_Timer(ENABLE,MB_TIMER_RECEIVE);            //启动Modbus定时器，等待从站的响应
+          }
+          if(usart_rdata!=SendData[MB_ReceiveLen_Temp])           //接收数据应该和发送数据不一样
+            MB_Configure.state=MB_FAILED;
+          MB_ReceiveLen_Temp++;
+        }
+        else if(MB_Configure.state!=MB_FAILED)
+          MB_Configure.state=MB_FAILED;
+    }
+  }
+}
+
+
+/*******************************************************************************
+* 函数名 : Modbus_WriteN
+* 描述   : Modbus写N个数据(线圈或者保持寄存器)
+* 输入   : writestruct:指向写操作配置的结构体指针
+* 返回   : 是否写入成功
+*******************************************************************************/
+uint8_t Modbus_WriteN(Modbus_WStruct* mb_wstruct)
+{
+  uint8_t *SendData;
+  uint8_t MB_ReceiveLen_Temp=0,usart_rdata;
+  
+  SendData=(uint8_t*)malloc(mb_wstruct->len+9);
+  //配置待发送的数据包
+  SendData[0]=mb_wstruct->device_id;        SendData[1]=mb_wstruct->function;     //配置设备地址和操作码
+  SendData[2]=(mb_wstruct->address>>8)&0xff;SendData[3]=mb_wstruct->address&0xff; //配置写入的起始地址
+  SendData[4]=((mb_wstruct->len/2)>>8)&0xff;SendData[5]=(mb_wstruct->len/2)&0xff; //配置待写入的数据
+  for(uint8_t i=0;i<mb_wstruct->len;i++)
+    SendData[i+7]=mb_wstruct->data[i];
+  
+  CRC_Check(SendData,mb_wstruct->len+7,&SendData[mb_wstruct->len+7]);//对发送数据进行CRC校验
+  MB_Configure.state=MB_SEND;                   //设置Modbus工作状态为正在发送
+  RS485_Send(SendData,mb_wstruct->len+9);       //调用RS485驱动，发送数据
+  CRC_Check(SendData,6,&SendData[6]);           //对接收的数据进行crc校验
+  MB_Configure.state=MB_WAITRESPONSE;           //设置Modbus工作状态为等待从机响应
+  Modbus_Set_Timer(ENABLE,MB_TIMER_WAIT);       //启动Modbus定时器，等待从站的响应
+  
+  while(1)
+  {
+    if(TIM_GetFlagStatus(TIM2, TIM_IT_Update) != RESET) //检查TIM2中断发生与否
+    {
+      TIM_ClearITPendingBit(TIM2, TIM_IT_Update);       //清除TIM2中断标志
+      Modbus_Set_Timer(DISABLE,NULL);
+      if(MB_Configure.state==MB_WAITRESPONSE || MB_Configure.state==MB_FAILED)//Modbus工作状态为等待从机响应,则表示等待从机响应超时；或者Modbus通信发生错误
+      {
+        MB_Configure.state=MB_FAILED;
+        return RT_ERROR;
+      }
+      else if(MB_Configure.state==MB_RECEIVE)           //Modbus工作状态为数据接收状态，Modbus通信正常，
+      {
+        if(MB_ReceiveLen_Temp!=8)//接收数据错误
+        {
+          MB_Configure.state=MB_FAILED;
+          return RT_ERROR;
+        }
+        else//接收成功
+        {
+          MB_Configure.state=MB_OK;
+          return RT_EOK;
+        }
+      }
+    }
+    
+    if(USART_GetFlagStatus(USART2,USART_FLAG_RXNE) == SET)
+    {
+        usart_rdata=USART_ReceiveData(USART2);                  //获取usart接收到的数据
+        TIM2->CNT = 0;;                                         //定时器当前定时值清零
+        if(MB_ReceiveLen_Temp<8 && MB_Configure.state!=MB_FAILED)
+        {
+          if(MB_ReceiveLen_Temp==0)
+          {
+            MB_Configure.state=MB_RECEIVE;                        //设置Modbus工作状态为正在接收从机响应
+            Modbus_Set_Timer(ENABLE,MB_TIMER_RECEIVE);            //启动Modbus定时器，等待从站的响应
+          }
+          if(usart_rdata!=SendData[MB_ReceiveLen_Temp])           //接收数据应该和发送数据不一样
+            MB_Configure.state=MB_FAILED;
+          MB_ReceiveLen_Temp++;
+        }
+        else if(MB_Configure.state!=MB_FAILED)
+          MB_Configure.state=MB_FAILED;
+    }
+  }
+  
 }
 
 
