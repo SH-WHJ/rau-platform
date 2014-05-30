@@ -238,12 +238,12 @@ struct tm* get_time(void)
   struct tm* tm_temp;
   time_t now;
   time(&now);
-  tm_temp=localtime(&now);
-  tm_temp->tm_mon++;
-  tm_temp->tm_year+=1900;
 #ifdef RT_USING_FINSH
   rt_kprintf("%s\n", ctime(&now));
 #endif
+  tm_temp=localtime(&now);
+  tm_temp->tm_mon++;
+  tm_temp->tm_year+=1900;
   return tm_temp;
 }
 
