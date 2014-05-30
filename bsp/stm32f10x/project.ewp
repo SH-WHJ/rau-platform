@@ -2002,6 +2002,9 @@
         <name>$PROJ_DIR$\drivers\Modbus.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\drivers\rtc.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\drivers\SPI.c</name>
       </file>
       <file>
@@ -2024,6 +2027,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\drivers\Modbus.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\drivers\rtc.h</name>
       </file>
       <file>
         <name>$PROJ_DIR$\drivers\SPI.h</name>

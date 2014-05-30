@@ -65,7 +65,7 @@ static rt_err_t rt_rtc_control(rt_device_t dev, rt_uint8_t cmd, void *args)
         /* Wait until last write operation on RTC registers has finished */
         RTC_WaitForLastTask();
 
-        BKP_WriteBackupRegister(BKP_DR1, 0xA5A5);
+        BKP_WriteBackupRegister(BKP_DR1, 0x5A5A);
     }
     break;
     }
@@ -127,7 +127,7 @@ void rt_hw_rtc_init(void)
 {
     rtc.type	= RT_Device_Class_RTC;
 
-    if (BKP_ReadBackupRegister(BKP_DR1) != 0xA5A5)
+    if (BKP_ReadBackupRegister(BKP_DR1) != 0x5A5A)
     {
         rt_kprintf("rtc is not configured\n");
         rt_kprintf("please configure with set_date and set_time\n");
@@ -180,9 +180,6 @@ time_t time(time_t* t)
     return time;
 }
 
-#ifdef RT_USING_FINSH
-#include <finsh.h>
-
 void set_date(rt_uint32_t year, rt_uint32_t month, rt_uint32_t day)
 {
     time_t now;
@@ -209,7 +206,6 @@ void set_date(rt_uint32_t year, rt_uint32_t month, rt_uint32_t day)
         rt_rtc_control(device, RT_DEVICE_CTRL_RTC_SET_TIME, &now);
     }
 }
-FINSH_FUNCTION_EXPORT(set_date, set date. e.g: set_date(2010,2,28))
 
 void set_time(rt_uint32_t hour, rt_uint32_t minute, rt_uint32_t second)
 {
@@ -236,14 +232,24 @@ void set_time(rt_uint32_t hour, rt_uint32_t minute, rt_uint32_t second)
         rt_rtc_control(device, RT_DEVICE_CTRL_RTC_SET_TIME, &now);
     }
 }
-FINSH_FUNCTION_EXPORT(set_time, set time. e.g: set_time(23,59,59))
 
-void list_date(void)
+struct tm* get_time(void)
 {
-    time_t now;
-
-    time(&now);
-    rt_kprintf("%s\n", ctime(&now));
+  struct tm* tm_temp;
+  time_t now;
+  time(&now);
+  tm_temp=localtime(&now);
+  tm_temp->tm_mon++;
+  tm_temp->tm_year+=1900;
+#ifdef RT_USING_FINSH
+  rt_kprintf("%s\n", ctime(&now));
+#endif
+  return tm_temp;
 }
-FINSH_FUNCTION_EXPORT(list_date, show date and time.)
+
+#ifdef RT_USING_FINSH
+#include <finsh.h>
+FINSH_FUNCTION_EXPORT(set_date, set date. e.g: set_date(2010,2,28));
+FINSH_FUNCTION_EXPORT(set_time, set time. e.g: set_time(23,59,59));
+FINSH_FUNCTION_EXPORT(get_time, show date and time);
 #endif

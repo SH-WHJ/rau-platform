@@ -142,6 +142,7 @@ void rt_init_thread_entry(void* parameter)
 #endif
 
     rt_hw_enc28j60_init();
+
 #ifdef  RT_USING_FINSH
     finsh_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif  /* RT_USING_FINSH */

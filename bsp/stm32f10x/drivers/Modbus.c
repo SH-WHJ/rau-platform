@@ -232,7 +232,7 @@ static uint8_t Modbus_Write1(Modbus_WStruct* mb_wstruct)
 * 输入   : writestruct:指向写操作配置的结构体指针
 * 返回   : 是否写入成功
 *******************************************************************************/
-uint8_t Modbus_WriteN(Modbus_WStruct* mb_wstruct)
+static uint8_t Modbus_WriteN(Modbus_WStruct* mb_wstruct)
 {
   uint8_t *SendData;
   uint8_t MB_ReceiveLen_Temp=0,usart_rdata;

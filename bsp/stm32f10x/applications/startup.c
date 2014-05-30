@@ -14,7 +14,7 @@
 
 #include <rthw.h>
 #include <rtthread.h>
-
+#include "rtc.h"
 #include "board.h"
 
 /**
@@ -81,6 +81,8 @@ void rtthread_startup(void)
     rt_system_timer_init();//系统定时器初始化
 
     rt_system_timer_thread_init();//系统软件定时器线程初始化
+    
+    rt_hw_rtc_init();
     
     rt_application_init();//应用程序初始化
     
