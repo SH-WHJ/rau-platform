@@ -17,8 +17,6 @@
 
 #include "board.h"
 #include "RauAp.h"
-#define CLIENT_NAME_LEN 10
-
 extern void rt_scheduler_sethook(void (*hook)(struct rt_thread *from, struct rt_thread *to));
 extern void rt_thread_switch_hook(struct rt_thread *from, struct rt_thread *to);
 /**

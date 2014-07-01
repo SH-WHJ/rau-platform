@@ -27,7 +27,8 @@ SOCKET RauSock =0;
 struct member_list_t member_list[10];
 static unsigned int gclient_cmd_index =0xffffffff;
 int g_member_num =0;
-
+char send_buf[SEND_BUF_LEN];
+char recv_buf[RECV_BUG_LEN];
 //extern void rt_thread_switch_hook(struct rt_thread *from, struct rt_thread *to);
 
 int rau_app_analysis_data(SOCKET client,char *pbuf,int len)

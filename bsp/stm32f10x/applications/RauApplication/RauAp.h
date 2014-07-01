@@ -35,9 +35,6 @@ extern "C" {
 
 #define SOCKET              int
 
-char send_buf[SEND_BUF_LEN];
-char recv_buf[RECV_BUG_LEN];
-
 struct member_list_t 
 {
 	char client_name[CLIENT_NAME_LEN];
