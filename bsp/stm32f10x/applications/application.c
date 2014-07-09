@@ -43,6 +43,9 @@
 
 #include "led.h"
 
+extern void tcpclient(void* parameter);
+
+
 ALIGN(RT_ALIGN_SIZE)
 static rt_uint8_t led_stack[ 512 ];
 static struct rt_thread led_thread;
@@ -89,6 +92,21 @@ void cali_store(struct calibration_data *data)
                data->max_y);
 }
 #endif /* RT_USING_RTGUI */
+
+
+void start_tcp_client(void)
+{
+
+	rt_thread_t tcp_thread;
+	tcp_thread = rt_thread_create("tcpclient",
+                                   tcpclient, RT_NULL,
+                                   4096, 13, 20);
+	if (tcp_thread != RT_NULL)
+    {
+        rt_thread_startup(tcp_thread);
+    }
+}
+
 
 void rt_init_thread_entry(void* parameter)
 {
@@ -142,7 +160,14 @@ void rt_init_thread_entry(void* parameter)
         calibration_init();
     }
 #endif /* #ifdef RT_USING_RTGUI */
+
+    start_tcp_client();//whj add for test
+
 }
+
+
+
+
 
 int rt_application_init(void)
 {

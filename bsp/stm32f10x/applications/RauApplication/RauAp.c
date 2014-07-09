@@ -100,10 +100,15 @@ void rau_app_tcp_connect_server(void)
 {
     struct hostent *host;
     struct sockaddr_in server_addr;
-
+    int ncount=0;
     host = gethostbyname(SERVER_URL);
     while(1)
     {
+        if(ncount>=5)
+        {   
+            rt_kprintf("尝试联接5次失败\n");
+            return;
+        }
         if ((RauSock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
         {
 
@@ -122,12 +127,17 @@ void rau_app_tcp_connect_server(void)
             rt_kprintf("Connect fail!\n");
             lwip_close(RauSock);
             rt_thread_delay(100);        				
+            ncount++;
             continue;
         }
-        break;
+        else
+        {
+            rt_kprintf("联接成功开始登陆请求\n");     
+            rau_app_client_login(RauSock);
+            break;
+        }
     }
-    rt_kprintf("联接成功开始登陆请求\n");     
-    rau_app_client_login(RauSock);
+
     
 }
 /***************************************************************************
