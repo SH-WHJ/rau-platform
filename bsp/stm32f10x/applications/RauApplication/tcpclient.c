@@ -219,7 +219,7 @@ reconnect:
 		{
 //			spend_time_sec = gettimeofday(NULL,NULL);
 			hlog("send data:%s\n",com_rbuf);
-			slen = getSendMsgData("hudepeng",com_rbuf,rlen,&sdata);
+			slen = getSendMsgData("test11",com_rbuf,rlen,&sdata);
 			if(slen>0)
 	        {
 				bytes_sended = send(sock,sdata.data_ptr,slen, 0); 

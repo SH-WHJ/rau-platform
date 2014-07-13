@@ -13,14 +13,21 @@ extern "C" {
 #define CLIENT_PASSWORD_LEN		16
 #define PROTOCOL_HEAD_LEN			13
 
-#define CMD_LOGIN												0x0001		
-#define CMD_LOGOUT 											0x0002		
-#define CMD_GET_MEMBER_LIST 						                    0x0003		
-#define CMD_SEND_MESSAGE 								             0x0004		
-#define CMD_RECV_MESSAGE                                                                0x0005		
+/*–≠“È√¸¡Ó◊÷*/
+#define CMD_LOGIN										        0x0001		
+#define CMD_LOGOUT 											 0x0002		
+#define CMD_GET_MEMBER_LIST 						                0x0003		
+#define CMD_SEND_MESSAGE 								         0x0004		
+#define CMD_FORWARD_MESSAGE                                                         0x0005		
 #define CMD_UPDATE_MEMBER_STATUS                                               0x0006 
-#define CMD_RESPONSE 										        0x0100 
+#define CMD_RESPONSE 										  0x0100 
 #define PROTOCOL_VER_NUB                                                                0x0001
+
+
+#define   HEAD_ERROR                                                                                -0x0001
+
+
+
 
 
 #define SEND_BUF_LEN			100
@@ -59,6 +66,16 @@ void client_recvice_message(char *pbuf,int data_len);
 int client_get_member_list(SOCKET client);
 void rau_app_client_login(SOCKET client);
 int client_send_message(SOCKET client,char *p_name,char *p_sting);
+int client_send_receive_success(SOCKET client,char *pdata,int cmd_index);
+void hdp_client_log(const char *fmt, ...);
+
+int rcu_uart_init();
+void rcu_uart_shutdown();
+static rt_err_t rcu_rx_ind(rt_device_t dev, rt_size_t size);
+void rcu_uart_set_device(char* uartStr);
+int rcu_uart_read(char* buf, int bufLen);
+int rcu_uart_write(char* buf, int bufLen);
+
 #ifdef __cplusplus
 }
 #endif    

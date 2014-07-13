@@ -43,7 +43,7 @@
 
 #include "led.h"
 
-extern void tcpclient(void* parameter);
+//extern void tcpclient(void* parameter);
 
 
 ALIGN(RT_ALIGN_SIZE)
@@ -93,7 +93,7 @@ void cali_store(struct calibration_data *data)
 }
 #endif /* RT_USING_RTGUI */
 
-
+/*
 void start_tcp_client(void)
 {
 
@@ -106,7 +106,7 @@ void start_tcp_client(void)
         rt_thread_startup(tcp_thread);
     }
 }
-
+*/
 
 void rt_init_thread_entry(void* parameter)
 {
@@ -161,7 +161,7 @@ void rt_init_thread_entry(void* parameter)
     }
 #endif /* #ifdef RT_USING_RTGUI */
 
-    start_tcp_client();//whj add for test
+    //start_tcp_client();//whj add for test
 
 }
 
