@@ -26,12 +26,12 @@
 
 #else
 
-#define led1_rcc                    RCC_APB2Periph_GPIOF
-#define led1_gpio                   GPIOF
-#define led1_pin                    (GPIO_Pin_6)
-#define led2_pin                    (GPIO_Pin_7)
-#define led3_pin                    (GPIO_Pin_8)
-#define led4_pin                    (GPIO_Pin_9)
+#define led1_rcc                    RCC_APB2Periph_GPIOE
+#define led1_gpio                   GPIOE
+#define led1_pin                    (GPIO_Pin_2)
+#define led2_pin                    (GPIO_Pin_3)
+#define led3_pin                    (GPIO_Pin_4)
+#define led4_pin                    (GPIO_Pin_5)
 //#define led2_rcc                    RCC_APB2Periph_GPIOE
 //#define led2_gpio                   GPIOE
 //#define led2_pin                    (GPIO_Pin_3)

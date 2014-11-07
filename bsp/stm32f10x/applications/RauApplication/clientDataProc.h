@@ -12,7 +12,7 @@
 #define NULL RT_NULL
 
 //#define DEV_RCU   //read from uart1
-//#define DEV_RAU
+#define DEV_RAU
 
 
 #define hlog hdp_client_log //rt_kprintf
@@ -25,8 +25,8 @@ typedef struct
 
 void hdp_client_log(const char *fmt, ...);
 
-int getRegMsgData(send_data_t* sptr);
+int getRegMsgData(send_data_t* sptr,int plc_id);
 int client_data_proc(char* data, int len, send_data_t* sptr);
-int getSendMsgData(char* dest, char* data, int dataLen,send_data_t* sptr);
+int getSendMsgData(int destid, char* data, int dataLen,send_data_t* sptr);
 
 #endif //_CLIENT_DATA_PROC_H_

@@ -87,9 +87,7 @@ void rtthread_startup(void)
     rt_system_timer_thread_init();//系统软件定时器线程初始化
     
     rt_application_init();//应用程序初始化
-    
-    rt_rau_application_init();//whj add init rau application
-    
+       
     rt_thread_idle_init();//初始化空闲线程
 
     rt_system_scheduler_start();//开始线程调度此后便进入各个线程的无限循环

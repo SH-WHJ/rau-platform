@@ -529,17 +529,17 @@ static void GPIO_Configure()
     GPIO_WriteBit(GPIOA, GPIO_Pin_4, Bit_SET);
 
     //…Ë÷√C2Œ™enc28j60_int–≈∫≈
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;                    
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;                    
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOC, &GPIO_InitStructure);
-    GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource2);
-    EXTI_InitStructure.EXTI_Line = EXTI_Line2;
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource4);
+    EXTI_InitStructure.EXTI_Line = EXTI_Line4;
     EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
     EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
     EXTI_InitStructure.EXTI_LineCmd = ENABLE;
     EXTI_Init(&EXTI_InitStructure);
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI2_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;

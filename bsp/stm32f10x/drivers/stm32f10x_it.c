@@ -128,12 +128,12 @@ void DebugMon_Handler(void)
 * Return         : None
 *******************************************************************************/
 extern void enc28j60_isr();
-void EXTI2_IRQHandler(void)
+void EXTI4_IRQHandler(void)
 {
   rt_interrupt_enter();
-  if(EXTI_GetFlagStatus(EXTI_Line2)==SET)
+  if(EXTI_GetFlagStatus(EXTI_Line4)==SET)
   {
-    EXTI_ClearITPendingBit(EXTI_Line2);//清除enc28j60的中断标志位
+    EXTI_ClearITPendingBit(EXTI_Line4);//清除enc28j60的中断标志位
     enc28j60_isr();
   }
     rt_interrupt_leave();

@@ -23,7 +23,7 @@ int rcu_uart_read(char* buf, int bufLen);
 int rcu_uart_write(char* buf, int bufLen);
 #endif
 
-extern void led_on(int i);
+//extern void led_on(int i);
 extern short make_int16(char* ptr);
 //extern int gettimeofday(struct timeval *tp, void *ignore);
 
@@ -32,7 +32,7 @@ extern short make_int16(char* ptr);
 #define hclog rt_kprintf
 
 
-static const char* server_url="42.96.202.37";
+static const char* server_url="192.168.1.134";
 static const int server_port = 8400;
 
 static char send_buf[BUFSZ]={0};
@@ -69,8 +69,8 @@ void tcpclient(void* parameter)
 
 
 #ifdef RCU_UART
-	rcu_uart_init();
-	rcu_uart_set_device("uart1");
+//	rcu_uart_init();
+//	rcu_uart_set_device("uart2");
 #endif //RCU_UART
 
 
@@ -104,48 +104,55 @@ reconnect:
 	//	server_addr.sin_addr.s_addr = inet_addr(server_url);
 		rt_memset(&(server_addr.sin_zero), 0, sizeof(server_addr.sin_zero));    
 		
-	
+		{
+			//extern void enable_eth_rx_interrupt(void);
+			//enable_eth_rx_interrupt();
+		}
 		if (connect(sock, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) == -1)   
 		{        
 			bytes_received = errno;
 			hclog("Connect fail!,errno:%d,try angin after a while....\n",bytes_received); 
 			//break;//test
 			lwip_close(sock); 
-    
+
+//			return;//test
+			
+		//	rt_free(recv_data);        
+		//	return;    
 			rt_thread_delay(100);
-/*        
-		    if(index & 0x00000001)
-				led_on(1);
-			else
-				led_off(1);
-			index++;
-*/			
+		   // if(index & 0x00000001)
+				//led_on(1);
+			//else
+				//led_off(1);
+			//index++;
 		    continue;
 		} 
 		break;
 	}
+	//led_on(1);
     hclog("connect to server:%s success\n",server_url);
 
 
 
 	//register
-	slen = getRegMsgData(&sdata);
+	slen = getRegMsgData(&sdata,1);
 	if(slen>0)
 	{
 		while(1)
 		{
 			bytes_sended = send(sock,sdata.data_ptr,slen, 0);
-			if(sdata.data_ptr!=send_buf)
-			{
-				rt_free(sdata.data_ptr);
-				sdata.data_ptr=NULL;
-				sdata.data_len=0;
-			}
+			
 			if(bytes_sended!=slen)
 			{
 				hclog("send register data failed!\n");
 				//break;//test
 				continue;
+			}
+			if(sdata.data_ptr!=send_buf)
+			{
+				rt_free(sdata.data_ptr);
+				sdata.data_ptr=NULL;
+				sdata.data_len=0;
 			}
 			bytes_received = recv(sock, recv_data, BUFSZ - 1, 0);
 			if(bytes_received==0)
@@ -156,9 +163,9 @@ reconnect:
 			if(bytes_received>0)
 			{
 				p = recv_data;
-				p+=3;
+				p+=7;
 				cmd = make_int16(p);
-				if(cmd==0x0101)
+				if(cmd==50000)
 				{
 					hclog("register success.....\n");
 					break;
@@ -219,7 +226,7 @@ reconnect:
 		{
 //			spend_time_sec = gettimeofday(NULL,NULL);
 			hlog("send data:%s\n",com_rbuf);
-			slen = getSendMsgData("test11",com_rbuf,rlen,&sdata);
+			slen = getSendMsgData("hudepeng",com_rbuf,rlen,&sdata);
 			if(slen>0)
 	        {
 				bytes_sended = send(sock,sdata.data_ptr,slen, 0); 
@@ -282,95 +289,108 @@ static rt_err_t rcu_rx_ind(rt_device_t dev, rt_size_t size)
 
 void rcu_uart_set_device(char* uartStr)
 {
-    static int isInited=0;
-    rt_device_t dev = RT_NULL;
-                                                        
-    if(isInited==1)
-        return;
+	static int isInited=0;
+	rt_device_t dev = RT_NULL;
 
-    dev = rt_device_find(uartStr);
-    if (dev == RT_NULL)
-    {
-        rt_kprintf("finsh: can not find device: %s\n", uartStr);
-        return;
-    }
-    if(dev == rcuDevice)
-        return;
+	if(isInited==1)
+		return;
 
-    /* open this device and set the new device */
-    if (rt_device_open(dev, RT_DEVICE_OFLAG_RDWR) == RT_EOK)
-    {
-        if (rcuDevice != RT_NULL)
+	dev = rt_device_find(uartStr);
+	if (dev == RT_NULL)
+	{
+		rt_kprintf("finsh: can not find device: %s\n", uartStr);
+		return;
+	}
+	if(dev == rcuDevice)
+		return;
+
+	/* open this device and set the new device */
+	if (rt_device_open(dev, RT_DEVICE_OFLAG_RDWR) == RT_EOK)
+	{
+		if (rcuDevice != RT_NULL)
         {
             /* close old  device */
             rt_device_close(rcuDevice);
             rt_device_set_rx_indicate(dev, RT_NULL);
         }
-        rcuDevice = dev;
-        rt_device_set_rx_indicate(dev, rcu_rx_ind);
-    }
-    isInited = 1;
-                        
+		rcuDevice = dev;
+		rt_device_set_rx_indicate(dev, rcu_rx_ind);
+	}
+	isInited = 1;
+
 }
 
 int rcu_uart_read(char* buf, int bufLen)
 {
-    int ret = 0,rlen=0;
-    int flag=0;
-    char ch=0;
-    char* p = buf;
-    if(p == NULL)
-    {
-        return -1;
-    }
-    while(1)
-    {
-        if (rt_sem_take(&rcuReadSem, RT_WAITING_FOREVER) != RT_EOK)
-        return ret;
+	int type=0;
+	int ret = 0,rlen=0;
+	int flag=0;
+	char ch=0;
+	char* p = buf;
+	if(p == NULL)
+	{
+		return -1;
+	}
+	while(1)
+	{
+		if (rt_sem_take(&rcuReadSem, RT_WAITING_FOREVER) != RT_EOK)
+			return ret;
 
-        while(rt_device_read(rcuDevice, 0, &ch, 1)==1)
-        {
-            hclog("rcu_uart_read()--ch:0x%02x \n",ch);
-
-            if(ch == '\r')
-            {
-                flag = 1;
-                //break;
-            } 
-            else if(flag==1)
-            {
-                if(ch=='\n')
-                {
-                    rlen--;
-                    flag=2;
-                    break;
-                }
-                else
-                {
-                    flag=0;
-                }   
-            }
-
-            if(rlen<bufLen-1)
-            {
-                *p = ch;
-                p++;
-            }
-            rlen++;
-            //if(ch == 0XCE)
-            //{
-            //	flag = 2;
-            //	break;
-            //} 
-
-        }
-        if(flag==2)
-            break; 
-    }
-    ret = rlen;
-    if(rlen<bufLen)
-        buf[rlen]=0;
-    return ret;
+		while(rt_device_read(rcuDevice, 0, &ch, 1)==1)
+		{
+//			hclog("rcu_uart_read()--ch:0x%02x \n",ch);
+			if(type==0)
+			{
+				if(ch==0x01)
+					type = 1;
+				else
+					type = 2;
+			}
+			if(type==2)
+			{
+				if(ch == '\r')
+				{
+					flag = 1;
+					//break;
+				} 
+				else if(flag==1)
+				{
+					if(ch=='\n')
+					{
+						rlen--;
+						flag=2;
+						break;
+					}
+					else
+					{
+						flag=0;
+					}
+				}
+			}
+			
+			if(rlen<bufLen-1)
+			{
+				*p = ch;
+				p++;
+			}
+			rlen++;
+			if(type == 1)
+			{
+				if(ch == 0xce)
+				{
+					flag=2;
+					break;
+				}
+			}
+			
+		}
+		if(flag==2)
+			break;
+	}
+	ret = rlen;
+	if(rlen<bufLen)
+		buf[rlen]=0;
+	return ret;
 }
 int rcu_uart_write(char* buf, int bufLen)
 {
@@ -391,17 +411,17 @@ void hdp_client_log(const char *fmt, ...)
     rt_size_t length;
     static char rt_log_buf[MAX_LOG_LEN]={0};
 
-    rt_uint16_t old_flag = rcuDevice->flag;
+	rt_uint16_t old_flag = rcuDevice->flag;
 
-    if(rcuDevice==NULL)
-        return;
+	if(rcuDevice==NULL)
+		return;
 
     va_start(args, fmt);
     /* the return value of vsnprintf is the number of bytes that would be
-    * written to buffer had if the size of the buffer been sufficiently
-    * large excluding the terminating null byte. If the output string
-    * would be larger than the rt_log_buf, we have to adjust the output
-    * length. */
+     * written to buffer had if the size of the buffer been sufficiently
+     * large excluding the terminating null byte. If the output string
+     * would be larger than the rt_log_buf, we have to adjust the output
+     * length. */
     length = rt_vsnprintf(rt_log_buf, sizeof(rt_log_buf) - 1, fmt, args);
     if (length > MAX_LOG_LEN - 1)
         length = MAX_LOG_LEN - 1;       
@@ -409,7 +429,7 @@ void hdp_client_log(const char *fmt, ...)
     rcuDevice->flag |= RT_DEVICE_FLAG_STREAM;
     rt_device_write(rcuDevice, 0, rt_log_buf, length);
     rcuDevice->flag = old_flag;
-
+		
     va_end(args);
 }
 

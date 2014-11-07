@@ -93,7 +93,7 @@ void cali_store(struct calibration_data *data)
 }
 #endif /* RT_USING_RTGUI */
 
-/*
+//@hdp add for tcp client 
 void start_tcp_client(void)
 {
 
@@ -161,7 +161,7 @@ void rt_init_thread_entry(void* parameter)
     }
 #endif /* #ifdef RT_USING_RTGUI */
 
-    //start_tcp_client();//whj add for test
+    start_tcp_client();//@hdp add 
 
 }
 
