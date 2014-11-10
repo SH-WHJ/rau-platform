@@ -43,7 +43,7 @@
 
 #include "led.h"
 
-//extern void tcpclient(void* parameter);
+extern void tcpclient(void* parameter);
 
 
 ALIGN(RT_ALIGN_SIZE)
@@ -106,7 +106,7 @@ void start_tcp_client(void)
         rt_thread_startup(tcp_thread);
     }
 }
-*/
+
 
 void rt_init_thread_entry(void* parameter)
 {

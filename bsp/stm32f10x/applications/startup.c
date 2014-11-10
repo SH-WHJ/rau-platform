@@ -16,7 +16,7 @@
 #include <rtthread.h>
 
 #include "board.h"
-#include "RauAp.h"
+//#include "RauAp.h"
 extern void rt_scheduler_sethook(void (*hook)(struct rt_thread *from, struct rt_thread *to));
 extern void rt_thread_switch_hook(struct rt_thread *from, struct rt_thread *to);
 /**

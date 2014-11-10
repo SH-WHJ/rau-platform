@@ -1910,13 +1910,16 @@
       <name>$PROJ_DIR$\applications\application.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\applications\RauApplication\RauAp.c</name>
+      <name>$PROJ_DIR$\applications\RauApplication\clientDataProc.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\applications\RauApplication\RauTimer.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\applications\startup.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\applications\RauApplication\tcpclient.c</name>
     </file>
   </group>
   <group>
